@@ -8,9 +8,10 @@ import {
   Segment,
   Icon,
   List,
-  Input
+  Input,
+  Button
 } from "semantic-ui-react";
-import ConfigForm from "./TableComponents/ConfigForm";
+import ConfigForm from "./ConfigComponents/ConfigForm";
 
 export default class EditConfigurations extends Component {
   constructor() {
@@ -28,92 +29,122 @@ export default class EditConfigurations extends Component {
         "app7",
         "app8",
         "app9"
-      ]
+      ],
+      capabilities: ["Cap1", "Cap2", "Cap3", "Cap4", "Cap5"],
+      activeCapability: ""
     };
   }
 
   render() {
     console.log(this.state.appName);
     return (
-      <Container style={{ marginTop: "3em" }}>
-        <Header as="h2" dividing>
-          <Icon name="cogs" />
-          Configurations
-        </Header>
-        <Grid columns={3} doubling>
-          <Grid.Row>
-            <Grid.Column>
-              <Segment>
-                <Label as="span" color="blue" ribbon>
-                  Capability
-                </Label>
+      <React.Fragment>
+        <Button
+          floated="left"
+          color="blue"
+          onClick={() => this.props.history.push("/")}
+        >
+          <Icon name="arrow left" /> Back
+        </Button>
 
-                <span>
-                  <Menu
-                    items={[
-                      { key: "1", name: "link-1", content: "Cap1" },
-                      { key: "2", name: "link-2", content: "Cap2" },
-                      { key: "3", name: "link-3", content: "Cap3" },
-                      { key: "4", name: "link-3", content: "Cap4" },
-                      { key: "5", name: "link-3", content: "Cap5" }
-                    ]}
-                    pointing
-                    secondary
+        <Container style={{ marginTop: "3em" }}>
+          <Header as="h2" block dividing>
+            <Icon name="cogs" />
+            Configurations
+          </Header>
+          <Grid columns={3} doubling>
+            <Grid.Row>
+              <Grid.Column>
+                <Segment>
+                  <Label as="span" color="blue" ribbon>
+                    Capability
+                  </Label>
+
+                  <span>
+                    <Menu pointing secondary>
+                      {this.state.capabilities.map(capability => (
+                        <Menu.Item
+                          active={this.state.activeCapability === capability}
+                          key={capability}
+                          onClick={() =>
+                            this.setState({ activeCapability: capability })
+                          }
+                        >
+                          {capability}
+                        </Menu.Item>
+                      ))}
+                    </Menu>
+                  </span>
+                </Segment>
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
+          <Grid style={{ paddingTop: 0 }}>
+            {this.state.activeCapability ? (
+              <React.Fragment>
+                <Grid.Column width={4} style={{ paddingTop: 0 }}>
+                  <Header
+                    dividing
+                    style={{ marginTop: 10, marginBottom: 0 }}
+                    as="h3"
+                  >
+                    <Header.Content>App Names</Header.Content>
+                  </Header>
+                  <Input
+                    icon={<Icon name="search" inverted circular link />}
+                    placeholder="Search App ..."
+                    size="small"
+                    fluid
                   />
-                </span>
-              </Segment>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-        <Grid style={{ paddingTop: 0 }}>
-          <Grid.Column width={4} style={{ paddingTop: 0 }}>
-            <Header dividing style={{ marginTop: 10, marginBottom: 0 }} as="h3">
-              <Header.Content>App Names</Header.Content>
-            </Header>
-            <Input
-              icon={<Icon name="search" inverted circular link />}
-              placeholder="Search App ..."
-              size="small"
-              fluid
-            />
-            <List
-              size="large"
-              divided
-              animated
-              selection
-              verticalAlign="middle"
-              style={{ height: 300, overflowY: "auto" }}
-            >
-              {this.state.names.map(name => (
-                <List.Item
-                  key={name}
-                  onClick={() => {
-                    if (this.state.appName === name) {
-                      this.setState({ appClick: false, appName: "" });
-                    } else {
-                      this.setState({ appClick: true, appName: name });
-                    }
-                  }}
-                  active={this.state.appName === name}
-                >
-                  <List.Content>
-                    <List.Header style={{ textTransform: "capitalize" }}>
-                      {name}
-                    </List.Header>
-                  </List.Content>
-                </List.Item>
-              ))}
-            </List>
-          </Grid.Column>
-          <Grid.Column width={12}>
-            {this.state.appClick ? (
-              <ConfigForm appName={this.state.appName} />
+                  <List
+                    size="large"
+                    divided
+                    animated
+                    selection
+                    verticalAlign="middle"
+                    style={{ height: 300, overflowY: "auto" }}
+                  >
+                    {this.state.names.map(name => (
+                      <List.Item
+                        key={name}
+                        onClick={() => {
+                          if (this.state.appName === name) {
+                            this.setState({ appClick: false, appName: "" });
+                          } else {
+                            this.setState({ appClick: true, appName: name });
+                          }
+                        }}
+                        active={this.state.appName === name}
+                      >
+                        <List.Content>
+                          <List.Header style={{ textTransform: "capitalize" }}>
+                            {name}
+                          </List.Header>
+                        </List.Content>
+                      </List.Item>
+                    ))}
+                  </List>
+                </Grid.Column>
+              </React.Fragment>
             ) : (
               ""
             )}
-          </Grid.Column>
-        </Grid>
-      </Container>
+            <Grid.Column width={this.state.activeCapability ? 12 : 16}>
+              {this.state.appName ? (
+                <ConfigForm appName={this.state.appName} />
+              ) : (
+                <Segment placeholder piled textAlign="center">
+                  {this.state.activeCapability ? (
+                    <Header as="h2">Select an App.</Header>
+                  ) : (
+                    <Header as="h2">Select a Capability.</Header>
+                  )}
+                </Segment>
+              )}
+            </Grid.Column>
+          </Grid>
+        </Container>
+      </React.Fragment>
     );
   }
 }
