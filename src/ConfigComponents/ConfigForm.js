@@ -5,7 +5,8 @@ import {
   Input,
   Segment,
   Header,
-  Checkbox
+  Checkbox,
+  Divider
 } from "semantic-ui-react";
 
 export default class ConfigForm extends Component {
@@ -24,16 +25,33 @@ export default class ConfigForm extends Component {
   }
   render() {
     return (
-      <Segment color="grey" inverted>
-        <Header dividing style={{ textTransform: "capitalize" }} as="h2">
+      <Segment
+        inverted
+        style={{
+          backgroundColor: "#dcdcdc",
+          borderStyle: "solid",
+          borderColor: "rgba(0,0,0,0.1)",
+          borderWidth: 1
+        }}
+        //color="blue"
+      >
+        <Header
+          dividing
+          style={{
+            textTransform: "capitalize",
+            color: "black"
+          }}
+          as="h2"
+        >
           {this.props.appName}
         </Header>
         <Form inverted>
+          <Divider horizontal inverted></Divider>
           <Form.Group inline>
             <Label
               size="large"
               color="grey"
-              style={{ width: 75, marginRight: 10 }}
+              style={{ width: 95, marginRight: 10 }}
             >
               High Priority
             </Label>
@@ -48,79 +66,112 @@ export default class ConfigForm extends Component {
               />
             </Form.Field>
           </Form.Group>
+          <Divider horizontal inverted></Divider>
           <Form.Group inline>
             <Label
               size="large"
-              color="blue"
-              style={{ width: 75, marginRight: 10 }}
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
             >
               CPU
             </Label>
             <Form.Field>
-              <Input placeholder="Red" label="%" />
+              <Input
+                placeholder="Upper Limit"
+                label={{ color: "red", content: "%" }}
+              />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Yellow" label="%" />
+              <Input
+                placeholder="Middle Limit"
+                label={{ color: "yellow", content: "%" }}
+              />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Green" label="%" />
+              <Input
+                placeholder="Lower Limit"
+                label={{ color: "green", content: "%" }}
+              />
             </Form.Field>
           </Form.Group>
+          <Divider horizontal inverted></Divider>
           <Form.Group inline>
             <Label
               size="large"
-              color="blue"
-              style={{ width: 75, marginRight: 10 }}
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
             >
               Memory
             </Label>
             <Form.Field>
-              <Input placeholder="Red" label="%" />
+              <Input
+                placeholder="Upper Limit"
+                label={{ color: "red", content: "%" }}
+              />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Yellow" label="%" />
+              <Input
+                placeholder="Middle Limit"
+                label={{ color: "yellow", content: "%" }}
+              />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Green" label="%" />
+              <Input
+                placeholder="Lower Limit"
+                label={{ color: "green", content: "%" }}
+              />
             </Form.Field>
           </Form.Group>
+          <Divider horizontal inverted></Divider>
           <Form.Group inline>
             <Label
               size="large"
-              color="blue"
-              style={{ width: 75, marginRight: 10 }}
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
             >
               Disk
             </Label>
             <Form.Field>
-              <Input placeholder="Red" label="%" />
+              <Input
+                placeholder="Upper Limit"
+                label={{ color: "red", content: "%" }}
+              />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Yellow" label="%" />
+              <Input
+                placeholder="Middle Limit"
+                label={{ color: "yellow", content: "%" }}
+              />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Green" label="%" />
+              <Input
+                placeholder="Lower Limit"
+                label={{ color: "green", content: "%" }}
+              />
             </Form.Field>
           </Form.Group>
+          <Divider horizontal inverted></Divider>
           <Form.Group inline>
             <Label
               size="large"
-              color="blue"
-              style={{ width: 75, marginRight: 10 }}
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
             >
               Instances
             </Label>
             <Form.Field>
-              <Input placeholder="Red" label="#" />
+              <Input placeholder="Upper Limit" label="#" />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Yellow" label="#" />
+              <Input placeholder="Middle Limit" label="#" />
             </Form.Field>
             <Form.Field>
-              <Input placeholder="Green" label="#" />
+              <Input placeholder="Lower Limit" label="#" />
             </Form.Field>
           </Form.Group>
-          <Form.Button>Submit</Form.Button>
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <Form.Button color="blue">Submit</Form.Button>
+          </div>
         </Form>
       </Segment>
     );

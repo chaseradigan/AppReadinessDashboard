@@ -52,7 +52,7 @@ export default class EditConfigurations extends Component {
             <Icon name="cogs" />
             Configurations
           </Header>
-          <Grid columns={3} doubling>
+          <Grid columns={2} doubling>
             <Grid.Row>
               <Grid.Column>
                 <Segment>
@@ -61,9 +61,10 @@ export default class EditConfigurations extends Component {
                   </Label>
 
                   <span>
-                    <Menu pointing secondary>
+                    <Menu pointing secondary fluid widths={5}>
                       {this.state.capabilities.map(capability => (
                         <Menu.Item
+                          color="blue"
                           active={this.state.activeCapability === capability}
                           key={capability}
                           onClick={() =>
@@ -135,9 +136,9 @@ export default class EditConfigurations extends Component {
               ) : (
                 <Segment placeholder piled textAlign="center">
                   {this.state.activeCapability ? (
-                    <Header as="h2">Select an App.</Header>
+                    <Header as="h3">Select an App.</Header>
                   ) : (
-                    <Header as="h2">Select a Capability.</Header>
+                    <Header as="h3">Select a Capability.</Header>
                   )}
                 </Segment>
               )}
