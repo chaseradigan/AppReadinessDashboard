@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import EditConfigurations from "./EditConfigurations";
-import HomePage from "./HomePage";
+import HomePage from "./HomeComponents/HomePage";
+
 
 function App() {
   return (
