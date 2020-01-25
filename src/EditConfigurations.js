@@ -8,35 +8,77 @@ import {
   Segment,
   Icon,
   List,
-  Input,
   Button
 } from "semantic-ui-react";
 import ConfigForm from "./ConfigComponents/ConfigForm";
-
+import axios from "axios";
+import SearchBar from "./ConfigComponents/SearchBar";
+let mapCap1Apps = new Map();
+let mapCap2Apps = new Map();
+let mapCap3Apps = new Map();
+let mapCap4Apps = new Map();
+let mapCap5Apps = new Map();
+let cap1Array = [];
+let cap2Array = [];
+let cap3Array = [];
+let cap4Array = [];
+let cap5Array = [];
 export default class EditConfigurations extends Component {
   constructor() {
     super();
     this.state = {
       appName: "",
       appClick: false,
-      names: [
-        "app1",
-        "app2",
-        "app3",
-        "app4",
-        "app5",
-        "app6",
-        "app7",
-        "app8",
-        "app9"
-      ],
+      cap1Names: [],
       capabilities: ["Cap1", "Cap2", "Cap3", "Cap4", "Cap5"],
-      activeCapability: ""
+      activeCapability: "",
+      loading: true
     };
+    this.callBack = this.callBack.bind(this);
+  }
+  setData(caps) {
+    for (let i = 0; i < caps.length; i++) {
+      let cap = caps[i];
+      for (let j = 0; j < cap.capApps.length; j++) {
+        switch (i) {
+          case 0:
+            mapCap1Apps.set(cap.capApps[j].appName, cap.capApps[i]);
+            cap1Array.push({ title: cap.capApps[j].appName });
+            this.state.cap1Names.push(cap.capApps[j].appName);
+            break;
+          case 1:
+            mapCap2Apps.set(cap.capApps[j].appName, cap.capApps[i]);
+            cap2Array.push({ title: cap.capApps[j].appName });
+            this.state.cap2Names.push(cap.capApps[j].appName);
+            break;
+          //more cases....
+          default:
+            break;
+        }
+      }
+    }
+  }
+  componentDidMount() {
+    axios
+      .get("http://localhost:9091/api/pcf/capabilities/all/metrics")
+      .then(response => {
+        console.log(response);
+
+        let caps = response.data.capabilities;
+        this.setData(caps);
+        this.setState({ loading: false });
+      });
+  }
+  callBack(appName, configs) {
+    console.log(appName);
+    console.log(configs);
+  }
+  searchSelect(name) {
+    //callBack for child SearchBar.js
+    this.setState({ appClick: true, appName: name });
   }
 
   render() {
-    console.log(this.state.appName);
     return (
       <React.Fragment>
         <Button
@@ -47,7 +89,7 @@ export default class EditConfigurations extends Component {
           <Icon name="arrow left" /> Back
         </Button>
 
-        <Container style={{ marginTop: "3em" }}>
+        <Container style={{ marginTop: "1em" }}>
           <Header as="h2" block dividing>
             <Icon name="cogs" />
             Configurations
@@ -64,9 +106,10 @@ export default class EditConfigurations extends Component {
                     <Menu pointing secondary fluid widths={5}>
                       {this.state.capabilities.map(capability => (
                         <Menu.Item
+                          disabled={this.state.loading}
                           color="blue"
-                          active={this.state.activeCapability === capability}
                           key={capability}
+                          active={this.state.activeCapability === capability}
                           onClick={() =>
                             this.setState({ activeCapability: capability })
                           }
@@ -76,6 +119,21 @@ export default class EditConfigurations extends Component {
                       ))}
                     </Menu>
                   </span>
+                </Segment>
+              </Grid.Column>
+              <Grid.Column floated="right" textAlign="right" width={4}>
+                <Segment disabled={this.state.activeCapability.length < 1}>
+                  <SearchBar
+                    apps={
+                      this.state.activeCapability === "Cap1"
+                        ? cap1Array
+                        : cap2Array
+                    }
+                    searchSelect={name => {
+                      this.searchSelect(name);
+                    }}
+                    disabled={this.state.activeCapability.length < 1}
+                  />
                 </Segment>
               </Grid.Column>
             </Grid.Row>
@@ -91,12 +149,7 @@ export default class EditConfigurations extends Component {
                   >
                     <Header.Content>App Names</Header.Content>
                   </Header>
-                  <Input
-                    icon={<Icon name="search" inverted circular link />}
-                    placeholder="Search App ..."
-                    size="small"
-                    fluid
-                  />
+
                   <List
                     size="large"
                     divided
@@ -105,25 +158,36 @@ export default class EditConfigurations extends Component {
                     verticalAlign="middle"
                     style={{ height: 300, overflowY: "auto" }}
                   >
-                    {this.state.names.map(name => (
-                      <List.Item
-                        key={name}
-                        onClick={() => {
-                          if (this.state.appName === name) {
-                            this.setState({ appClick: false, appName: "" });
-                          } else {
-                            this.setState({ appClick: true, appName: name });
-                          }
-                        }}
-                        active={this.state.appName === name}
-                      >
-                        <List.Content>
-                          <List.Header style={{ textTransform: "capitalize" }}>
-                            {name}
-                          </List.Header>
-                        </List.Content>
-                      </List.Item>
-                    ))}
+                    {this.state.activeCapability === "Cap1" ? (
+                      <React.Fragment>
+                        {this.state.cap1Names.map(name => (
+                          <List.Item
+                            key={name}
+                            onClick={() => {
+                              if (this.state.appName === name) {
+                                this.setState({ appClick: false, appName: "" });
+                              } else {
+                                this.setState({
+                                  appClick: true,
+                                  appName: name
+                                });
+                              }
+                            }}
+                            active={this.state.appName === name}
+                          >
+                            <List.Content>
+                              <List.Header
+                                style={{ textTransform: "capitalize" }}
+                              >
+                                {name}
+                              </List.Header>
+                            </List.Content>
+                          </List.Item>
+                        ))}
+                      </React.Fragment>
+                    ) : (
+                      ""
+                    )}
                   </List>
                 </Grid.Column>
               </React.Fragment>
@@ -132,13 +196,19 @@ export default class EditConfigurations extends Component {
             )}
             <Grid.Column width={this.state.activeCapability ? 12 : 16}>
               {this.state.appName ? (
-                <ConfigForm appName={this.state.appName} />
+                <ConfigForm
+                  callBack={this.callBack}
+                  appName={this.state.appName}
+                  details={mapCap1Apps.get(this.state.appName)}
+                />
               ) : (
                 <Segment placeholder piled textAlign="center">
                   {this.state.activeCapability ? (
                     <Header as="h3">Select an App.</Header>
                   ) : (
-                    <Header as="h3">Select a Capability.</Header>
+                    <React.Fragment>
+                      <Header as="h3">Select a Capability.</Header>
+                    </React.Fragment>
                   )}
                 </Segment>
               )}
@@ -149,34 +219,3 @@ export default class EditConfigurations extends Component {
     );
   }
 }
-// <Table celled color="grey" inverted selectable>
-//               <Table.Header>
-//                 <Table.Row>
-//                   <Table.HeaderCell>App Name</Table.HeaderCell>
-//                   <Table.HeaderCell>Cpu_pct</Table.HeaderCell>
-//                   <Table.HeaderCell>Memory</Table.HeaderCell>
-//                   <Table.HeaderCell>Disk</Table.HeaderCell>
-//                   <Table.HeaderCell>Instances</Table.HeaderCell>
-//                 </Table.Row>
-//               </Table.Header>
-
-//               <Table.Body>
-//                 <ConfigRow />
-//               </Table.Body>
-//               <Table.Footer fullWidth>
-//                 <Table.Row>
-//                   <Table.HeaderCell />
-//                   <Table.HeaderCell colSpan="4">
-//                     <Button
-//                       floated="right"
-//                       icon
-//                       labelPosition="left"
-//                       primary
-//                       size="small"
-//                     >
-//                       <Icon name="cog" /> Submit
-//                     </Button>
-//                   </Table.HeaderCell>
-//                 </Table.Row>
-//               </Table.Footer>
-//             </Table>
