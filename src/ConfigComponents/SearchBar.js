@@ -27,7 +27,7 @@ export default class SearchBar extends Component {
         onResultSelect={(e, { result }) => this.handleSelect(result.title)}
         results={this.state.results}
         icon={<Icon name="search" inverted circular link />}
-        placeholder="Search Apps..."
+        placeholder={`Search Apps...`}
         size="small"
         fluid
       />
