@@ -1,5 +1,7 @@
 import React, { Component } from "react";
-import { Container, Icon, Button, Header, Menu, Table } from "semantic-ui-react";
+import { Container, Icon, Button, Header, Menu,Dimmer, Loader,Message} from "semantic-ui-react";
+import AppTable from './AllAppsTable';
+import PriorityTable from './PriorityAppsTable';
 import "../StyleSheets/Home.css";
 import axios from 'axios';
 
@@ -7,140 +9,123 @@ class HomePage extends Component {
   constructor() {
     super();
     this.state = {
-      capabilities: ["Cap1", "Cap2", "Cap3", "Cap4", "Cap5"],
-      activeCapability: "Cap1"
+      activeCapability: [],
+      priorityData: [],
+      allAppsData:null,
+      loading:true,
+      visible:true
     };
   }
 
-  componentDidMount(){
-
-    axios.get('http://localhost:9091/api/pcf/capabilities/all/metrics')
+  componentWillMount(){
+    //console.log("Priority Data:")
+    //console.log(this.state.priorityData);
+    axios.get('/api/pcf/capabilities/all/metrics')
     .then(response=>{
+      
+      this.setState({loading:false, 
+        allAppsData:response.data,
+        activeCapability: response.data.capabilities[0].capName
+      })
       console.log(response.data);
+              axios.get('/api/pcf/capabilities/'+this.state.activeCapability+'/all/priority/apps')
+              .then(response=>{
+                //console.log(response.data);
+                this.setState({priorityData: response.data })
+              })
+              .catch(error=>{
+                console.log(error)
+              })
+    })
+    .catch(error=>{
+      console.log(error);
     })
 
+  }
+
+
+  handleDismiss = () => {
+    //this.setState({ visible: false })
+
+    setTimeout(() => {
+      this.setState({ visible: true })
+    }, 2000)
   }
 
   render() {
     return (
       <React.Fragment>
         
-        <Container style={{ marginTop: "1.5em" }}>
+        <Container style={{ marginTop: "1.5em", marginBottom: "1.5em" }}>
           <Header as="h2" dividing>
             App Readiness
             <Button className="right" href="/config">
                 <Icon name="cogs" /> Configurations
             </Button>
           </Header>
-          <Menu pointing secondary fluid widths={5} size="massive">
-            {this.state.capabilities.map(capability => (
-              <Menu.Item
-                active={this.state.activeCapability === capability}
-                key={capability}
-                onClick={() => this.setState({ activeCapability: capability })}
-              >
-                {capability}
-              </Menu.Item>
+          
+        {this.state.loading ?  
+          <Dimmer active inverted>
+          <Loader inverted content='Loading' />
+          </Dimmer>
+          :
+          <React.Fragment>
+          <Menu 
+          fluid 
+          //widths={5} 
+          inverted
+          size="large">
+          {this.state.allAppsData.capabilities.map((capability) => (
+            <Menu.Item
+              active={this.state.activeCapability === capability.capName}
+              key={capability}
+              color={capability.state === "GOOD" ? "green": capability.state ==="OKAY" ? "yellow" : "red"}
+              onClick={() => this.setState({ activeCapability: capability.capName })}
+              style={{
+                textTransform: "capitalize",
+                }}
+            >
+              {capability.capName}
+            </Menu.Item>
             ))}
           </Menu>
-          <Header as="h4">
-          PRIORITY APPLICATIONS
-          </Header>
-          <Table celled>
-          <Table.Header>
-          <Table.Row>
-              <Table.HeaderCell>Name</Table.HeaderCell>
-              <Table.HeaderCell>Status</Table.HeaderCell>
-              <Table.HeaderCell>Disk</Table.HeaderCell>
-              <Table.HeaderCell>CPU</Table.HeaderCell>
-              <Table.HeaderCell>Memory</Table.HeaderCell>
-          </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            <Table.Row>
-                <Table.Cell>No Name Specified</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-            </Table.Row>
-            <Table.Row positive>
-                <Table.Cell>Jimmy</Table.Cell>
-                <Table.Cell>
-                  <Icon name='checkmark' />
-                  Approved
-                </Table.Cell>
-                <Table.Cell>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-                <Table.Cell>Jamie</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell positive>
-                  <Icon name='close' />
-                  Requires call
-                </Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-            </Table.Row>
-            <Table.Row negative>
-                <Table.Cell>Jill</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-            </Table.Row>
-            <Table.Row negative>
-                <Table.Cell>Jill</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
+          {this.state.priorityData.length === 0 ?
+          <div>Priority Not Populated</div>
+          :
+           <React.Fragment>
+            {this.state.priorityData.capApps !== null ?
+                  <React.Fragment>
+                  <Header as="h4">
+                  PRIORITY APPLICATIONS
+                  </Header>
+                  <PriorityTable/>
+                  </React.Fragment>
+                   :
+                  <Message
+                  //onDismiss={this.handleDismiss}
+                  content='There are no priority applications under this capability.
+                   You can change the configurations if you want to add a priority app.'
+                  />
 
-        <Header as="h4">
-          ALL APPLICATIONS
-        </Header>
-          <Table celled>
-          <Table.Header>
-          <Table.Row>
-              <Table.HeaderCell>Name</Table.HeaderCell>
-              <Table.HeaderCell>Status</Table.HeaderCell>
-              <Table.HeaderCell>Notes</Table.HeaderCell>
-          </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            <Table.Row>
-                <Table.Cell>No Name Specified</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell negative>None</Table.Cell>
-            </Table.Row>
-            <Table.Row positive>
-                <Table.Cell>Jimmy</Table.Cell>
-                <Table.Cell>
-                  <Icon name='checkmark' />
-                  Approved
-                </Table.Cell>
-                <Table.Cell>None</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-                <Table.Cell>Jamie</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell positive>
-                  <Icon name='close' />
-                  Requires call
-                </Table.Cell>
-            </Table.Row>
-            <Table.Row negative>
-                <Table.Cell>Jill</Table.Cell>
-                <Table.Cell>Unknown</Table.Cell>
-                <Table.Cell>None</Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
+              }
+              </React.Fragment>
+
+          }
+ 
+        
+          <div>
+          <Header as="h4">
+              ALL APPLICATIONS
+          </Header>
+          {this.state.allAppsData!==null ?
+            <AppTable activecap={this.state.activeCapability} data={this.state.allAppsData}/>
+            :
+            ""
+          }
+          
+          </div>
+          </React.Fragment>
+          }
 
 
         </Container>
