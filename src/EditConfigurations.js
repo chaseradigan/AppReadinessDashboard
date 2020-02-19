@@ -91,11 +91,9 @@ export default class EditConfigurations extends Component {
       this.setState({ activeCapability: "", appName: "" });
     }
   }
-  componentDidMount() {
-    axios
-      .get(
-        "http://localhost:9091/api/pcf/capabilities/all/metrics?configOrNot=true"
-      )
+  async componentDidMount() {
+    await axios
+      .get("/api/pcf/capabilities/all/metrics?configOrNot=true")
       .then(response => {
         console.log(response);
 
@@ -148,7 +146,7 @@ export default class EditConfigurations extends Component {
               <Grid.Column>
                 <Segment>
                   <Label as="span" color="blue" ribbon>
-                    Capability
+                    Capabilities
                   </Label>
 
                   <span>
@@ -194,12 +192,12 @@ export default class EditConfigurations extends Component {
                   </Header>
 
                   <List
-                    size="large"
+                    size="medium"
                     divided
                     animated
                     selection
                     verticalAlign="middle"
-                    style={{ height: 300, overflowY: "auto" }}
+                    style={{ maxHeight: 400, overflowY: "auto" }}
                   >
                     <React.Fragment>
                       {activeArray.map(name => (
