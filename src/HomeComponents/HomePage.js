@@ -30,27 +30,10 @@ class HomePage extends Component {
     //console.log("Priority Data:")
     //console.log(this.state.priorityData);
     await axios
-      .get("/api/pcf/capabilities/all/metrics")
+      .get(`/api/pcf/environment/${this.props.match.params.env}/app/all`)
       .then(response => {
-        this.setState({
-          loading: false,
-          allAppsData: response.data,
-          activeCapability: response.data.capabilities[0].capName
-        });
-        console.log(response.data);
-        axios
-          .get(
-            "/api/pcf/capabilities/" +
-              this.state.activeCapability +
-              "/all/priority/apps"
-          )
-          .then(response => {
-            //console.log(response.data);
-            this.setState({ priorityData: response.data });
-          })
-          .catch(error => {
-            console.log(error);
-          });
+        console.log(response);
+        this.setState({ allAppsData: response.data, loading: false });
       })
       .catch(error => {
         console.log(error);
@@ -86,7 +69,7 @@ class HomePage extends Component {
                 fluid
                 //widths={5}
                 inverted
-                size="large"
+                size="massive"
               >
                 {this.state.allAppsData.capabilities.map(capability => (
                   <Menu.Item
@@ -106,7 +89,7 @@ class HomePage extends Component {
                       textTransform: "capitalize"
                     }}
                   >
-                    {capability.capName}
+                    {capability.capName.toUpperCase()}
                   </Menu.Item>
                 ))}
               </Menu>

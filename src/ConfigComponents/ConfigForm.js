@@ -5,9 +5,8 @@ import {
   Input,
   Segment,
   Header,
-  Checkbox,
   Divider,
-  Icon
+  Loader
 } from "semantic-ui-react";
 import axios from "axios";
 
@@ -15,127 +14,78 @@ export default class ConfigForm extends Component {
   constructor() {
     super();
     this.state = {
-      priority: false,
-      cpuGood: "",
-      cpuOkay: "",
-      cpuBad: "",
-      diskGood: "",
-      diskOkay: "",
-      diskBad: "",
-      memGood: "",
-      memOkay: "",
-      memBad: "",
-      uptimeGood: "",
-      uptimeOkay: "",
-      uptimeBad: "",
-      loading: false
+      config: {},
+      goodRule: {
+        cpuPct: 0,
+        upTIme: 0,
+        disk: 0,
+        memory: 0,
+        errRate: 0,
+        avgResponseTime: 0
+      },
+      okayRule: {
+        cpuPct: 0,
+        upTIme: 0,
+        disk: 0,
+        memory: 0,
+        errRate: 0,
+        avgResponseTime: 0
+      },
+      badRule: {
+        cpuPct: 0,
+        upTIme: 0,
+        disk: 0,
+        memory: 0,
+        errRate: 0,
+        avgResponseTime: 0
+      },
+
+      submiting: false
     };
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidMount() {
-    console.log(this.props.details);
-    let config = this.props.details.configRule;
-    if (config) {
-      this.setState({
-        priority: config.priority,
-        cpuGood: config.goodRules.cpu_Pct,
-        cpuOkay: config.okayRules.cpu_Pct,
-        cpuBad: config.badRules.cpu_Pct,
-        diskGood: config.goodRules.disk,
-        diskOkay: config.okayRules.disk,
-        diskBad: config.badRules.disk,
-        memGood: config.goodRules.memory,
-        memOkay: config.okayRules.memory,
-        memBad: config.badRules.memory,
-        uptimeGood: config.goodRules.uptime,
-        uptimeOkay: config.okayRules.uptime,
-        uptimeBad: config.badRules.uptime
-      });
-    }
+    console.log("PROPS", this.props.config);
+    this.setState({
+      config: this.props.config,
+      goodRule: this.props.config.goodRule,
+      okayRule: this.props.config.okayRule,
+      badRule: this.props.config.badRule
+    });
   }
-
-  componentDidUpdate(prevProps, prevState) {
-    console.log(this.props.details.configRule);
-    if (prevProps.appName !== this.props.appName) {
-      let config = this.props.details.configRule;
-
-      this.setState({
-        priority: config.priority,
-        cpuGood: config.goodRules.cpu_Pct,
-        cpuOkay: config.okayRules.cpu_Pct,
-        cpuBad: config.badRules.cpu_Pct,
-        diskGood: config.goodRules.disk,
-        diskOkay: config.okayRules.disk,
-        diskBad: config.badRules.disk,
-        memGood: config.goodRules.memory,
-        memOkay: config.okayRules.memory,
-        memBad: config.badRules.memory,
-        uptimeGood: config.goodRules.uptime,
-        uptimeOkay: config.okayRules.uptime,
-        uptimeBad: config.badRules.uptime
-      });
-
-      return true;
-    }
-  }
-
-  handleChange(event) {
-    this.setState({ [event.target.name]: event.target.value });
-  }
-
-  handleSubmit() {
-    this.setState({ loading: true });
-    let configRule = {
-      priority: this.state.priority,
-      goodRules: {
-        upTime: this.state.uptimeGood,
-
-        memory: this.state.memGood,
-
-        disk: this.state.diskGood,
-
-        cpu_Pct: this.state.cpuGood
-      },
-      badRules: {
-        upTime: this.state.uptimeBad,
-
-        memory: this.state.memBad,
-
-        disk: this.state.diskBad,
-
-        cpu_Pct: this.state.cpuBad
-      },
-      okayRules: {
-        upTime: this.state.uptimeOkay,
-
-        memory: this.state.memOkay,
-
-        disk: this.state.diskOkay,
-
-        cpu_Pct: this.state.cpuOkay
-      },
-      capId: this.props.capId,
-      appId: this.props.details.appId,
-      addedBy: ""
-    };
-
-    axios
-      .post(
-        "http://localhost:9091/api/pcf/configurations",
-
-        configRule
-      )
+  async handleSubmit(e) {
+    e.preventDefault();
+    this.setState({ submiting: true });
+    await axios
+      .post(`/api/pcf/app/${this.props.appId}/configrules`, {
+        goodRule: this.state.goodRule,
+        okayRule: this.state.okayRule,
+        badRule: this.state.badRule
+      })
       .then(response => {
         console.log(response);
+        this.setState({ submiting: false });
       })
       .catch(error => {
         console.log(error);
       });
+  }
 
-    this.props.callBack(this.props.appName, configRule);
-    this.setState({ loading: false });
+  handleGoodChange(event) {
+    let goodRule = this.state.goodRule;
+    goodRule[event.target.name] = Number(event.target.value);
+    this.setState({ goodRule: this.state.goodRule });
+  }
+  handleOkayChange(event) {
+    let okayRule = this.state.okayRule;
+    okayRule[event.target.name] = Number(event.target.value);
+    this.setState({ okayRule: this.state.okayRule });
+  }
+  handleBadChange(event) {
+    let badRule = this.state.badRule;
+    badRule[event.target.name] = Number(event.target.value);
+    this.setState({ badRule: this.state.badRule });
   }
 
   render() {
@@ -158,37 +108,10 @@ export default class ConfigForm extends Component {
           as="h2"
         >
           {this.props.appName}
-          <Header.Subheader>
-            Previously Configured:{" "}
-            {this.props.details.configured ? (
-              <Icon name="check circle" />
-            ) : (
-              <Icon name="x" />
-            )}
-          </Header.Subheader>
         </Header>
         <Form inverted onSubmit={this.handleSubmit}>
           <Divider horizontal inverted></Divider>
-          <Form.Group inline>
-            <Label
-              size="large"
-              color="grey"
-              style={{ width: 95, marginRight: 10 }}
-            >
-              High Priority
-            </Label>
-            <Form.Field>
-              <Checkbox
-                checked={this.state.priority}
-                fitted
-                toggle
-                onChange={() =>
-                  this.setState({ priority: !this.state.priority })
-                }
-              />
-            </Form.Field>
-          </Form.Group>
-          <Divider horizontal inverted></Divider>
+
           <Form.Group inline>
             <Label
               size="large"
@@ -197,33 +120,44 @@ export default class ConfigForm extends Component {
             >
               CPU
             </Label>
-            <Form.Field>
-              <Input
-                name="cpuGood"
-                placeholder="Lower Limit"
-                label={{ color: "green", content: "%" }}
-                value={this.state.cpuGood}
-                onChange={this.handleChange}
-              />
-            </Form.Field>
-            <Form.Field>
-              <Input
-                name="cpuOkay"
-                placeholder="Middle Limit"
-                label={{ color: "yellow", content: "%" }}
-                value={this.state.cpuOkay}
-                onChange={this.handleChange}
-              />
-            </Form.Field>
-            <Form.Field>
-              <Input
-                name="cpuBad"
-                placeholder="Upper Limit"
-                label={{ color: "red", content: "%" }}
-                value={this.state.cpuBad}
-                onChange={this.handleChange}
-              />
-            </Form.Field>
+            <Form.Input
+              input={
+                <Input
+                  name="cpuPct"
+                  type="number"
+                  placeholder="Lower Limit"
+                  label={{ color: "green", content: "%" }}
+                  value={this.state.goodRule.cpuPct}
+                  onChange={e => this.handleGoodChange(e)}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="cpuPct"
+                  type="number"
+                  placeholder="Middle Limit"
+                  label={{ color: "yellow", content: "%" }}
+                  value={this.state.okayRule.cpuPct}
+                  onChange={e => this.handleOkayChange(e)}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="cpuPct"
+                  type="number"
+                  placeholder="Upper Limit"
+                  label={{ color: "red", content: "%" }}
+                  value={this.state.badRule.cpuPct}
+                  onChange={e => this.handleBadChange(e)}
+                />
+              }
+            />
           </Form.Group>
           <Divider horizontal inverted></Divider>
           <Form.Group inline>
@@ -234,34 +168,44 @@ export default class ConfigForm extends Component {
             >
               Memory
             </Label>
-            <Form.Field>
-              <Input
-                name="memGood"
-                value={this.state.memGood}
-                onChange={this.handleChange}
-                placeholder="Lower Limit"
-                label={{ color: "green", content: "%" }}
-              />
-            </Form.Field>
-            <Form.Field>
-              <Input
-                name="memOkay"
-                value={this.state.memOkay}
-                onChange={this.handleChange}
-                placeholder="Middle Limit"
-                label={{ color: "yellow", content: "%" }}
-              />
-            </Form.Field>
+            <Form.Input
+              input={
+                <Input
+                  name="memory"
+                  type="number"
+                  value={this.state.goodRule.memory}
+                  onChange={e => this.handleGoodChange(e)}
+                  placeholder="Lower Limit"
+                  label={{ color: "green", content: "%" }}
+                />
+              }
+            />
 
-            <Form.Field>
-              <Input
-                name="memBad"
-                value={this.state.memBad}
-                onChange={this.handleChange}
-                placeholder="Upper Limit"
-                label={{ color: "red", content: "%" }}
-              />
-            </Form.Field>
+            <Form.Input
+              input={
+                <Input
+                  name="memory"
+                  type="number"
+                  value={this.state.okayRule.memory}
+                  onChange={e => this.handleOkayChange(e)}
+                  placeholder="Middle Limit"
+                  label={{ color: "yellow", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="memory"
+                  type="number"
+                  value={this.state.badRule.memory}
+                  onChange={e => this.handleBadChange(e)}
+                  placeholder="Upper Limit"
+                  label={{ color: "red", content: "%" }}
+                />
+              }
+            />
           </Form.Group>
           <Divider horizontal inverted></Divider>
           <Form.Group inline>
@@ -272,39 +216,194 @@ export default class ConfigForm extends Component {
             >
               Disk
             </Label>
-            <Form.Field>
-              <Input
-                name="diskGood"
-                value={this.state.diskGood}
-                onChange={this.handleChange}
-                placeholder="Lower Limit"
-                label={{ color: "green", content: "%" }}
-              />
-            </Form.Field>
-            <Form.Field>
-              <Input
-                name="diskOkay"
-                value={this.state.diskOkay}
-                onChange={this.handleChange}
-                placeholder="Middle Limit"
-                label={{ color: "yellow", content: "%" }}
-              />
-            </Form.Field>
-            <Form.Field>
-              <Input
-                name="diskBad"
-                value={this.state.diskBad}
-                onChange={this.handleChange}
-                placeholder="Upper Limit"
-                label={{ color: "red", content: "%" }}
-              />
-            </Form.Field>
+            <Form.Input
+              input={
+                <Input
+                  name="disk"
+                  type="number"
+                  value={this.state.goodRule.disk}
+                  onChange={e => this.handleGoodChange(e)}
+                  placeholder="Lower Limit"
+                  label={{ color: "green", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="disk"
+                  type="number"
+                  value={this.state.okayRule.disk}
+                  onChange={e => this.handleOkayChange(e)}
+                  placeholder="Middle Limit"
+                  label={{ color: "yellow", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="disk"
+                  type="number"
+                  value={this.state.badRule.disk}
+                  onChange={e => this.handleBadChange(e)}
+                  placeholder="Upper Limit"
+                  label={{ color: "red", content: "%" }}
+                />
+              }
+            />
           </Form.Group>
           <Divider horizontal inverted></Divider>
+          <Form.Group inline>
+            <Label
+              size="large"
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
+            >
+              Error Rate
+            </Label>
+            <Form.Input
+              input={
+                <Input
+                  name="errRate"
+                  type="number"
+                  value={this.state.goodRule.errRate}
+                  onChange={e => this.handleGoodChange(e)}
+                  placeholder="Lower Limit"
+                  label={{ color: "green", content: "%" }}
+                />
+              }
+            />
 
+            <Form.Input
+              input={
+                <Input
+                  name="errRate"
+                  type="number"
+                  value={this.state.okayRule.errRate}
+                  onChange={e => this.handleOkayChange(e)}
+                  placeholder="Middle Limit"
+                  label={{ color: "yellow", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="errRate"
+                  type="number"
+                  value={this.state.badRule.errRate}
+                  onChange={e => this.handleBadChange(e)}
+                  placeholder="Upper Limit"
+                  label={{ color: "red", content: "%" }}
+                />
+              }
+            />
+          </Form.Group>
+          <Divider horizontal inverted></Divider>
+          <Form.Group inline>
+            <Label
+              size="large"
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
+            >
+              Avg. Response Time
+            </Label>
+            <Form.Input
+              input={
+                <Input
+                  name="avgResponseTime"
+                  type="number"
+                  value={this.state.goodRule.avgResponseTime}
+                  onChange={e => this.handleGoodChange(e)}
+                  placeholder="Lower Limit"
+                  label={{ color: "green", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="avgResponseTime"
+                  type="number"
+                  value={this.state.okayRule.avgResponseTime}
+                  onChange={e => this.handleOkayChange(e)}
+                  placeholder="Middle Limit"
+                  label={{ color: "yellow", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="avgResponseTime"
+                  type="number"
+                  value={this.state.badRule.avgResponseTime}
+                  onChange={e => this.handleBadChange(e)}
+                  placeholder="Upper Limit"
+                  label={{ color: "red", content: "%" }}
+                />
+              }
+            />
+          </Form.Group>
+          <Divider horizontal inverted></Divider>
+          <Form.Group inline>
+            <Label
+              size="large"
+              color="grey"
+              style={{ width: 95, marginRight: 10 }}
+            >
+              Up Time
+            </Label>
+            <Form.Input
+              input={
+                <Input
+                  name="upTIme"
+                  type="number"
+                  value={this.state.goodRule.upTIme}
+                  onChange={e => this.handleGoodChange(e)}
+                  placeholder="Lower Limit"
+                  label={{ color: "green", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="upTIme"
+                  type="number"
+                  value={this.state.okayRule.upTIme}
+                  onChange={e => this.handleOkayChange(e)}
+                  placeholder="Middle Limit"
+                  label={{ color: "yellow", content: "%" }}
+                />
+              }
+            />
+
+            <Form.Input
+              input={
+                <Input
+                  name="upTIme"
+                  type="number"
+                  value={this.state.badRule.upTIme}
+                  onChange={e => this.handleBadChange(e)}
+                  placeholder="Upper Limit"
+                  label={{ color: "red", content: "%" }}
+                />
+              }
+            />
+          </Form.Group>
+          <Divider horizontal inverted></Divider>
           <div style={{ textAlign: "center", marginTop: 20 }}>
             <Form.Button
-              disabled={this.state.loading}
+              loading={this.state.submiting}
+              disabled={this.state.submiting}
               type="submit"
               value="submit"
               color="blue"
